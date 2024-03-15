@@ -1,28 +1,26 @@
 import os
 import streamlit as st
-import whisper
+import assemblyai as aai
 import subprocess
 from tempfile import NamedTemporaryFile
 import pymongo
 
-mongo_uri="mongodb+srv://hritik:qwertyuiop@lms.dpalkur.mongodb.net/"
+mongo_uri = "mongodb+srv://yghugardare6:yghugardare2117@lms.z8u7boa.mongodb.net/"
 client = pymongo.MongoClient(mongo_uri)
-db = client["Elearning"]
-
+db = client["Lms"]
 
 st.title("Video_To_Transcribe")
 collection = db["ai"]
 
 # Additional fields for title and author
 title = st.text_input("Title")
-author = st.text_input("Course")
-
+Course = st.text_input("Course")
 
 # File uploader
 video_file = st.file_uploader("Upload Video", type=["mp4", "mkv", "avi"])
 
-model = whisper.load_model("base")
-st.text("Whisper Model Loaded")
+aai.settings.api_key = "49fa53465224463f9206feaf93dfe853"
+st.text("Model Loaded")
 
 # Audio file path
 audio_file_path = "audio_file_path.wav"
@@ -53,12 +51,17 @@ if st.sidebar.button("Transcribe"):
         audio_file_path = convert_video_to_mp3(video_file, audio_file_path)
 
         # Transcribe the audio
-        transcription = model.transcribe(audio_file_path)
-        print(title,author)
-        data = {"title": title, "Course": author, "transcription": transcription["text"]}
+        transcriber = aai.Transcriber()
+        transcription = transcriber.transcribe(audio_file_path)
+
+        # Access the transcribed text using .text attribute
+        transcribed_text = transcription.text
+
+        print(title, Course)
+        data = {"title": title, "Course": Course, "transcription": transcribed_text}
         collection.insert_one(data)
         st.sidebar.success("Transcribing complete")
-        st.markdown(transcription["text"])
+        st.markdown(transcribed_text)
     else:
         st.sidebar.error("Please upload a video file")
 
@@ -70,5 +73,3 @@ if os.path.exists(audio_file_path):
 
 st.sidebar.header("Play Original Video File")
 st.sidebar.video(video_file)
-
-
